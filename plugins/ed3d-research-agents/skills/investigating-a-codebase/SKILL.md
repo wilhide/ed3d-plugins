@@ -27,6 +27,8 @@ Understand current codebase state to ground planning and design decisions in rea
 
 ## Core Investigation Workflow
 
+**Do not use nested subagents.** If you are running as a research subagent, perform the investigation directly with Read/Glob/Grep and any other tools already available to you. Do not dispatch or invoke additional subagents.
+
 1. **Start with entry points** - main files, index, package.json, config
 2. **Use multiple search strategies** - Glob patterns, Grep keywords, Read files
 3. **Follow traces** - imports, references, component relationships

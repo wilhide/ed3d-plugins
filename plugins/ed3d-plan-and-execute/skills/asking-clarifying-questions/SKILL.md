@@ -35,6 +35,8 @@ Try to answer your own questions and disambiguate from the context of the workin
 
 You may have other skills or MCPs containing useful information, such as connections to remote datastores used for product management purposes. You should send out `haiku-general-purpose` subagents to investigate them when they're appropriate.
 
+**No nested subagents:** Only the current caller may dispatch these research subagents. Tell each subagent to do the work directly and not to dispatch additional subagents.
+
 ## What to Clarify
 
 ### 0. Contradictions (First Pass)

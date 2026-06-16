@@ -7,6 +7,8 @@ description: Use when the user wants to review their recent Claude Code sessions
 
 Review multiple recent sessions from the current project directory to identify cross-session patterns.
 
+**Do not use nested subagents.** This workflow may dispatch first-level reviewer and synthesis agents. Those agents must read the provided files directly and must not dispatch additional subagents.
+
 ## Prerequisites
 
 - The `ed3d-extending-claude` plugin must be installed.
@@ -74,6 +76,7 @@ Transcript path: /tmp/session-review-batch/reduced-N.txt
 Write your findings to: /tmp/session-review-batch/findings-N.md
 
 Read the transcript, analyze it, and write your findings following your output format.
+Do not dispatch or invoke any subagents.
 </parameter>
 </invoke>
 
@@ -107,6 +110,7 @@ Produce a synthesis that identifies:
 Write your synthesis to /tmp/session-review-batch/synthesis.md
 
 Format as Markdown. Be specific — reference which sessions showed which patterns. Be concise — this is a summary, not a repetition of individual findings.
+Do not dispatch or invoke any subagents.
 </parameter>
 </invoke>
 

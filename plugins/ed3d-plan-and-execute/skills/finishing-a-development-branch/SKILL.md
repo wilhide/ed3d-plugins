@@ -138,6 +138,8 @@ Then: Cleanup worktree (Step 6)
 
 Before merging or creating a PR, invoke `ed3d-extending-claude:project-claude-librarian` to update CLAUDE.md files if contracts or structure changed.
 
+**Do not use nested subagents.** The librarian subagent must inspect the branch directly and must not dispatch additional subagents.
+
 ```
 <invoke name="Task">
 <parameter name="subagent_type">ed3d-extending-claude:project-claude-librarian</parameter>
@@ -154,6 +156,7 @@ Before merging or creating a PR, invoke `ed3d-extending-claude:project-claude-li
   2. Identify contract/API/structure changes
   3. Update affected CLAUDE.md files
   4. Commit documentation updates with message: "docs: update project context for <branch-name>"
+  5. Do not dispatch or invoke any subagents.
 
   Report back with what was updated (or that no updates were needed).
 </parameter>

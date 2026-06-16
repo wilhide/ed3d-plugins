@@ -8,6 +8,8 @@ user-invocable: true
 
 Divide a corpus across Worker subagents, review with Critic subagents, synthesize with a Summarizer. Every stage writes to files; every subagent gets its own task.
 
+**Do not use nested subagents.** This workflow may dispatch first-level Worker, Critic, and Summarizer subagents. Those subagents must read their assigned inputs, write their outputs, and return directly to the caller. They must not dispatch additional subagents.
+
 ## Overview
 
 ```
@@ -197,6 +199,8 @@ For each significant finding:
 ### Segment Coverage
 List each segment you analyzed and confirm you read it completely.
 If any segment was too large to process fully, state which parts you skipped.
+
+Do not dispatch or invoke any subagents.
 ```
 
 Adapt the analysis goal and output format to match what the user asked for. The template above is a starting point — be specific about what constitutes a "finding" for this particular analysis.
@@ -251,6 +255,8 @@ Anything missing or conflicting across reports.
 
 ### Consolidated Key Findings
 The most important findings from the segments you reviewed, after accounting for quality.
+
+Do not dispatch or invoke any subagents.
 ```
 
 ### After Critics Complete
@@ -298,6 +304,8 @@ Full narrative organized by theme or topic.
 
 ### Appendix
 - List of all Worker and Critic reports with paths
+
+Do not dispatch or invoke any subagents.
 ```
 
 The Summarizer should return a brief (2-3 sentence) summary of findings to you, and defer the full explanation to the written file. Return the file path to the user.

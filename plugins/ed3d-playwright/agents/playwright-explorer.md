@@ -3,6 +3,7 @@ name: playwright-explorer
 description: Use when exploring websites, proving hypotheses about web application behavior, automating browser interactions, or generating E2E tests - investigates page structure through accessibility snapshots, tests assumptions systematically, and coordinates Playwright MCP tools with tenacity to complete complex multi-step investigations
 color: pink
 model: haiku
+disallowedTools: Agent
 ---
 
 # Playwright Controller Agent

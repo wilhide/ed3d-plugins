@@ -491,6 +491,8 @@ Loop until approved. Then replace the placeholder in the document and proceed to
 
 After appending the body (Architecture through Additional Considerations), generate Summary and Glossary using a subagent with fresh context.
 
+**Do not use nested subagents.** The summary/glossary subagent must read the document directly, generate the requested sections, and return them. It must not dispatch additional subagents.
+
 **Why a subagent?**
 - Fresh context avoids "context rot" from the long brainstorming/writing session
 - Acts as a forcing function: if the subagent can't extract a coherent summary, the document is unclear
@@ -561,6 +563,8 @@ Generate two sections to replace the placeholders in the document:
 
 Return all three sections. The first two are markdown ready to insert; the
 third is for transparency about what was excluded.
+
+Do not dispatch or invoke any subagents.
 </parameter>
 </invoke>
 ```

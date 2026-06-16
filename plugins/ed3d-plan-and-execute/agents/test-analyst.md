@@ -3,6 +3,7 @@ name: test-analyst
 description: Use after final code review passes to validate test coverage against acceptance criteria and generate human test plans - reads test-requirements.md, verifies automated tests exist, produces manual verification documentation
 model: opus
 color: yellow
+disallowedTools: Agent
 ---
 
 # Test Analyst

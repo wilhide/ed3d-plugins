@@ -21,7 +21,7 @@
         {
             "name": "ed3d-plan-and-execute",
             "description": "Planning and execution workflows for Claude Code. Based on obra/superpowers.",
-            "version": "1.10.3",
+            "version": "1.11.0",
             "source": "./plugins/ed3d-plan-and-execute",
             "author": {
                 "name": "Ed",
@@ -41,7 +41,7 @@
         {
             "name": "ed3d-basic-agents",
             "description": "Core agents for general-purpose tasks. Other plugins expect this to exist.",
-            "version": "1.1.0",
+            "version": "1.2.0",
             "source": "./plugins/ed3d-basic-agents",
             "author": {
                 "name": "Ed",
@@ -52,7 +52,7 @@
         {
             "name": "ed3d-research-agents",
             "description": "Agents used for research across multiple data sources.",
-            "version": "1.0.1",
+            "version": "1.2.0",
             "source": "./plugins/ed3d-research-agents",
             "author": {
                 "name": "Ed",
@@ -63,7 +63,7 @@
         {
             "name": "ed3d-extending-claude",
             "description": "Knowledge skills for extending Claude Code: creating plugins, commands, agents, skills, hooks, MCP servers, and marketplace management",
-            "version": "1.1.1",
+            "version": "1.2.0",
             "source": "./plugins/ed3d-extending-claude",
             "author": {
                 "name": "Ed",
@@ -81,7 +81,7 @@
         {
             "name": "ed3d-hook-skill-reinforcement",
             "description": "EXPERIMENTAL. A UserPromptSubmit hook that directs the model to consider and activate useful skills.",
-            "version": "1.0.1",
+            "version": "1.1.0",
             "source": "./plugins/ed3d-hook-skill-reinforcement",
             "author": {
                 "name": "Ed",
@@ -128,7 +128,7 @@
         {
             "name": "ed3d-playwright",
             "description": "Playwright automation toolkit with MCP integration, specialized agent for browser control, and best practice skills",
-            "version": "1.0.1",
+            "version": "1.1.0",
             "source": "./plugins/ed3d-playwright",
             "author": {
                 "name": "Ed",
@@ -146,7 +146,7 @@
         {
             "name": "ed3d-session-reflection",
             "description": "EXPERIMENTAL. Session awareness and conversation review tooling. Captures session metadata via SessionStart hook and provides conversation review agents and skills for analyzing prompting effectiveness, agent performance, and environment gaps.",
-            "version": "0.2.0",
+            "version": "0.3.0",
             "source": "./plugins/ed3d-session-reflection",
             "author": {
                 "name": "Ed",

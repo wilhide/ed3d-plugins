@@ -26,6 +26,8 @@ Gather accurate, current, well-sourced information from the internet to inform p
 
 ## Core Research Workflow
 
+**Do not use nested subagents.** If you are running as a research subagent, perform the research directly with web/search/fetch tools already available to you. Do not dispatch or invoke additional subagents.
+
 1. **Define question clearly** - specific beats vague
 2. **Search official sources first** - docs, release notes, changelogs
 3. **Cross-reference** - verify claims across multiple sources

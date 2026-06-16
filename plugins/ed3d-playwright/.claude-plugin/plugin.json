@@ -1,6 +1,6 @@
 {
   "name": "ed3d-playwright",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Playwright automation toolkit with MCP integration, specialized agent for browser control, and best practice skills",
   "author": {
     "name": "Ed",

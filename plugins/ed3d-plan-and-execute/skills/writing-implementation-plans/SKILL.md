@@ -70,6 +70,8 @@ Options:
 
 **DO NOT verify codebase yourself. Use codebase-investigator agent.**
 
+**Do not use nested subagents.** The planning workflow may dispatch `codebase-investigator`, `code-reviewer`, and test-requirement generation subagents, but those subagents must perform their assigned work directly and must not dispatch additional subagents.
+
 **Provide the agent with design assumptions so it can report discrepancies:**
 
 Dispatch one subagent codebase-investigator to understand testing behavior for this project.
@@ -77,12 +79,14 @@ Dispatch one subagent codebase-investigator to understand testing behavior for t
    - For example: do NOT stipulate TDD unless you understand the scope of the problem to be a predominantly functional one OR you receive direction from a human otherwise and do not assume that mocking databases or other external dependencies is acceptable. 
 - If you find problems that are difficult to test in isolation with mocks, you should surface questions to the human operator as to how they want to proceed.
 - Instruct the subagent to seek out CLAUDE.md or AGENTS.md files that include details on testing behavior, logic, and methodology, and include file references for you to provide in your plan for the executor to pass to its subagents.
+- Instruct the subagent not to dispatch or invoke any subagents.
 
 Dispatch a second subagent codebase-investigator (simultaneously) with:
 - "The design assumes these files exist: [list with expected paths/structure from design]"
 - "Verify each file exists and report any differences from these assumptions"
 - "The design says [feature] is implemented in [location]. Verify this is accurate"
 - "Design expects [dependency] version [X]. Check actual version installed"
+- "Do not dispatch or invoke any subagents."
 
 **Example query to agent:**
 ```
@@ -849,6 +853,8 @@ After all phase D tasks are completed, mark the Finalization task as in_progress
   **Session isolation:** Write any scratch files (notes, intermediate analysis, etc.) to
   SCRATCHPAD_DIR, not to shared temp locations. This prevents collisions with parallel sessions.
 
+  Do not dispatch or invoke any subagents.
+
   Evaluate:
   1. **Coverage**: Does the implementation plan cover ALL requirements from the design?
      - Check each design phase maps to implementation tasks
@@ -942,6 +948,8 @@ Generate test-requirements.md mapping each acceptance criterion to:
 - Human verification: criteria that can't be automated, with justification and verification approach
 
 Rationalize against implementation decisions made during planning. Every acceptance criterion must map to either an automated test or documented human verification.
+
+Do not dispatch or invoke any subagents.
 </parameter>
 </invoke>
 ```
@@ -976,4 +984,3 @@ Write to `[PLAN_DIR]/test-requirements.md`. Mark task completed. Proceed to exec
 After Test Requirements generation completes, announce:
 
 **"Implementation plan complete and validated. Saved to [count] phase files + test-requirements.md in `docs/implementation-plans/YYYY-MM-DD-<feature-name>/`. The first phase file is `<full-path>`. Test requirements are in `<full-path>/test-requirements.md`."**
-

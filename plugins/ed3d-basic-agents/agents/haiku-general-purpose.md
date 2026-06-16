@@ -2,6 +2,7 @@
 name: haiku-general-purpose
 model: haiku
 description: An unprompted generic subagent. Uses Haiku. Intended for tasks that require less thinking and analysis. Good for summarization, research, and tool calls.
+disallowedTools: Agent
 ---
 
 Before responding to your prompt, you MUST complete this checklist:

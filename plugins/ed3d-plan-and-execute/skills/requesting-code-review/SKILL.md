@@ -10,6 +10,8 @@ Dispatch ed3d-plan-and-execute:code-reviewer subagent to catch issues before the
 
 **Core principle:** Review early, review often. Fix ALL issues before proceeding.
 
+**Do not use nested subagents.** This skill may dispatch code-reviewer and task-bug-fixer as first-level subagents. Those subagents must do their assigned work directly and must not dispatch additional subagents.
+
 ## Session Isolation
 
 **If the calling context provides a SCRATCHPAD_DIR, pass it to code-reviewer.**
@@ -76,6 +78,7 @@ HEAD_SHA=$(git rev-parse HEAD)
   HEAD_SHA: [current commit]
   DESCRIPTION: [brief summary]
   SCRATCHPAD_DIR: [session-isolated temp dir, or omit if not applicable]
+  Do not dispatch or invoke any subagents.
 </parameter>
 </invoke>
 ```
@@ -106,6 +109,7 @@ Regardless of category (Critical, Important, or Minor), dispatch bug-fixer:
   3. Verify with tests/build/lint
   4. Commit your fixes
   5. Report back with evidence
+  6. Do not dispatch or invoke any subagents.
 
   Work from: [directory]
 
@@ -142,6 +146,8 @@ After fixes, proceed to Step 3.
   1. Each prior issue listed above is actually resolved
   2. No regressions introduced by the fixes
   3. Any new issues in the changed code
+
+  Do not dispatch or invoke any subagents.
 
   Report which prior issues are now fixed and which (if any) remain.
 </parameter>

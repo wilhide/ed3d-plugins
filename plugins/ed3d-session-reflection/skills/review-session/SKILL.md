@@ -7,6 +7,8 @@ description: Use when the user wants to review a Claude Code session for quality
 
 Review a single Claude Code session transcript for quality and produce actionable findings.
 
+**Do not use nested subagents.** This workflow may dispatch the `conversation-reviewer` agent, but that agent must analyze the transcript directly and must not dispatch additional subagents.
+
 ## Prerequisites
 
 - The `ed3d-extending-claude` plugin must be installed.
@@ -64,6 +66,7 @@ Transcript path: /tmp/session-review/reduced.txt
 Write your findings to: /tmp/session-review/findings.md
 
 Read the transcript, analyze it, and write your findings following your output format.
+Do not dispatch or invoke any subagents.
 </parameter>
 </invoke>
 

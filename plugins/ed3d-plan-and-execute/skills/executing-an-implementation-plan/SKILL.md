@@ -22,6 +22,8 @@ Execute plan phase-by-phase, loading each phase just-in-time to minimize context
 
 **The human cannot see what subagents return. You are their window into the work.**
 
+**Do not use nested subagents.** This workflow may dispatch first-level task, review, bug-fix, and librarian subagents. Those subagents must not dispatch additional subagents; they must do their assigned work directly and report back to this caller.
+
 After EVERY subagent completes (task-implementor, bug-fixer, code-reviewer), you MUST:
 
 1. **Print the subagent's full response** to the user before taking any other action
@@ -189,6 +191,7 @@ Do NOT implement functionality without tests. Missing tests = plan gap, not some
   4. Verify with tests/build/lint
   5. Commit your work
   6. Report back with evidence
+  7. Do not dispatch or invoke any subagents.
 
   Work from: [directory]
 
@@ -218,6 +221,7 @@ Do NOT implement functionality without tests. Missing tests = plan gap, not some
   4. Verify with tests/build/lint after completing all tasks
   5. Commit your work (one commit per task, or logical commits)
   6. Report back with evidence for each task
+  7. Do not dispatch or invoke any subagents.
 
   Work from: [directory]
 
@@ -296,6 +300,7 @@ The phase changed too much for a single review. Chunk the review:
   3. Verify with tests/build/lint
   4. Commit your fixes
   5. Report back with evidence
+  6. Do not dispatch or invoke any subagents.
 
   Work from: [directory]
 
@@ -346,6 +351,7 @@ After all phases complete, invoke the `ed3d-extending-claude:project-claude-libr
   2. Identify contract/API/structure changes
   3. Update affected CLAUDE.md files
   4. Commit documentation updates
+  5. Do not dispatch or invoke any subagents.
 
   Report back with what was updated (or that no updates were needed).
 </parameter>
@@ -406,6 +412,8 @@ HEAD_SHA: [current commit]
 Phase 1: Validate that automated tests exist for all acceptance criteria.
 Phase 2: If coverage passes, generate human test plan using your analysis.
 
+Do not dispatch or invoke any subagents.
+
 Return coverage validation result. If PASS, include the human test plan.
 </parameter>
 </invoke>
@@ -430,6 +438,7 @@ Return coverage validation result. If PASS, include the human test plan.
    3. Write tests that verify the criterion's actual behavior—not just code that passes, but code that would fail if the criterion weren't met
    4. Run tests to confirm they pass
    5. Commit the new tests
+   6. Do not dispatch or invoke any subagents.
 
    Work from: [directory]
    </parameter>

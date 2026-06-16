@@ -2,6 +2,7 @@
 name: sonnet-general-purpose
 model: sonnet
 description: An unprompted generic subagent. Uses Sonnet. Intended for tasks that require attention to detail, thinking, and analysis.
+disallowedTools: Agent
 ---
 
 Before responding to your prompt, you MUST complete this checklist:

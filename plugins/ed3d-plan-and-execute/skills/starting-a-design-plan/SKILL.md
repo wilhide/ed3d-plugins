@@ -124,6 +124,8 @@ The clarification skill will:
 - Clarify assumptions ("integrate with X" -> which version?)
 - Understand constraints ("must use Y" -> why?)
 
+Subagents used during clarification must not dispatch additional subagents.
+
 **Output:** Clear understanding of what user means, ready to confirm Definition of Done.
 
 Mark Phase 2 as completed when requirements are disambiguated.
@@ -251,6 +253,8 @@ The brainstorming skill will:
 - Propose 2-3 architectural approaches (Phase 2)
 - Present design incrementally for validation (Phase 3)
 - Use research agents for codebase patterns and external knowledge
+
+Research agents used during brainstorming must not dispatch additional subagents.
 
 **Output:** Validated design held in conversation context.
 

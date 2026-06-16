@@ -1,5 +1,22 @@
 # Changelog
 
+## [ed3d-basic-agents] 1.2.0, [ed3d-extending-claude] 1.2.0, [ed3d-plan-and-execute] 1.11.0, [ed3d-playwright] 1.1.0, [ed3d-research-agents] 1.2.0, [ed3d-session-reflection] 0.3.0
+
+Nested subagent spawning is now explicitly disabled across repository subagents and workflow documentation.
+
+I learned about this when several people in varying levels of distress reported to me substantial API spend, particularly around web search.
+
+And you know...that, clearly, is on me. I should, clearly, have realized that Anthropic would just YOLO out into the world a massively disruptive change, as opt-out rather than opt-in, and then never bother to adequately signal it ahead of time. Clearly it is on me for not assuming the harness and the inference provider would be hostile. I had a failure of imagination. Please accept my apologies.
+
+Refunds, however, are out of my scope. Try asking Boris. I hear he tweets.
+
+**Changed:**
+- All plugin subagents now deny the `Agent` tool via `disallowedTools: Agent`
+- Plan-and-execute workflow skills now state that first-level subagents must not dispatch additional subagents
+- Research agent skills now instruct research subagents to perform investigation directly with their own tools
+- Agent orchestration prompts now include explicit "Do not dispatch or invoke any subagents" language where workflow skills launch task, review, research, reflection, fan-out, or synthesis agents
+- Research-agent frontmatter descriptions were normalized to YAML block scalars so their agent metadata parses cleanly with the new denylist field
+
 ## ed3d-session-reflection 0.2.0
 
 **New:**

@@ -38,6 +38,8 @@ Use TaskUpdate to mark each phase as in_progress when working on it, completed w
 
 **DO NOT perform deep research yourself. Delegate to specialized agents.**
 
+**Do not use nested subagents.** The main brainstorming workflow may dispatch research agents, but those agents must complete their research directly with their own tools and return findings. Do not ask a research agent to dispatch another agent.
+
 ### When to Use codebase-investigator
 
 **Use codebase-investigator when you need to:**

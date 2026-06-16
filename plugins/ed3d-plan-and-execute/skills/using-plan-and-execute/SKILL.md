@@ -30,6 +30,8 @@ Before responding to ANY user message, you MUST complete this checklist:
 
 2. Execute skills with the Skill tool
 
+3. **Do not use nested subagents.** If a workflow dispatches a subagent, that subagent must do the assigned work directly with its own tools and return results to the caller. Subagents must not dispatch other subagents.
+
 ## Common Rationalizations That Mean You're About To Fail
 
 If you catch yourself thinking ANY of these thoughts, STOP. You are rationalizing. Check for and use the skill.
