@@ -1,5 +1,13 @@
 # Changelog
 
+## [ed3d-house-style] [1.2.0]
+
+Add Python house-style skill, alongside the existing Rust and TypeScript guides.
+
+**New:**
+- `howto-code-in-python` skill covering `uv` project/package management (PEP 735 dependency groups, `uv_build`, workspaces, dynamic versioning), type checking (Pyright default, PEP 695 generics), data modeling (dataclasses vs attrs vs Pydantic v2), async patterns (`asyncio.TaskGroup` vs `anyio`), pytest/Hypothesis/syrupy testing conventions, Ruff linting/formatting, and Python-specific sharp edges (mutable defaults, late-binding closures, `is` vs `==`)
+- `coding-effectively` now lists `howto-code-in-python` as a conditional sub-skill for Python code
+
 ## [ed3d-plan-and-execute] [1.13.0]
 
 Add an opt-in autonomous mode that runs the full design → plan → execute pipeline unattended, from `/start-design-plan` through a pushed PR, without stopping for human input.

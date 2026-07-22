@@ -15,6 +15,7 @@ user-invocable: false
 **CONDITIONAL:** Use these sub-skills when applicable:
 - `howto-code-in-typescript` - TypeScript code
 - `howto-code-in-rust` - Rust code
+- `howto-code-in-python` - Python code
 - `howto-develop-with-postgres` - PostgreSQL database code
 - `programming-in-react` - React frontend code
 - `writing-good-tests` - Writing or reviewing tests
