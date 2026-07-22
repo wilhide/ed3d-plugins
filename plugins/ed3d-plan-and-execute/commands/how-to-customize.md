@@ -38,10 +38,10 @@ Loaded when starting an implementation plan and again during the final all-phase
 
 Presence alone turns on autonomous mode across the whole design → plan → execute pipeline: every place a skill would normally call `AskUserQuestion` or stop to wait on you instead shells the question out to an external harness (a second AI, run headless) and treats its answer as yours. Mechanical choices that were never really judgment calls (worktree usage, batch vs. interactive plan writing) get hardcoded defaults instead of being asked or shelled at all. The two `/clear` handoffs (design → plan, plan → execute) are skipped in favor of chaining directly to the next skill in the same session, relying on auto-compaction instead of fresh context.
 
-Run `/auto-mode` to generate this file interactively. An empty file is also valid — presence alone is the switch, and both settings below have defaults.
+Run `/auto-mode` to generate this file interactively — it also smoke-tests that the configured harness can actually read the repository, since codex's sandbox silently degrades to prompt-only answers where user namespaces are restricted. An empty file is also valid — presence alone is the switch, and both settings below have defaults.
 
 **What to include (both optional):**
-- A `HARNESS_CMD:` line with the command template to run, using `{{PROMPT}}` as the placeholder for the question text. Defaults to `codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"` if omitted.
+- A `HARNESS_CMD:` line with the command template to run, using `{{PROMPT}}` as the placeholder for the question text. Defaults to `codex exec --dangerously-bypass-approvals-and-sandbox "{{PROMPT}}"` if omitted — **⚠️ that is full-auto bypass mode: no sandbox, no approvals, unrestricted shell and write access, intended for isolated, disposable devcontainers only.** On a bare host, set a sandboxed command like `codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"` instead.
 - A `## Preamble` section: text prepended to every question sent to the harness. Defaults to a framing that casts the harness as the project's decision-maker on an unattended run and tells it to verify claims against the repository rather than agree by default. The harness is asked to reply with brief reasoning plus a final `ANSWER:` line, so the log captures why, not just what.
 
 **What it changes beyond question-answering:**
@@ -113,7 +113,11 @@ The presence of this file turns on autonomous mode for the ed3d
 plan-and-execute pipeline: questions that would wait on a human are answered
 by the harness command below instead. Delete this file to turn it off.
 
-HARNESS_CMD: codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"
+WARNING: the harness command below runs codex in full-auto bypass mode — no
+sandbox, no approval prompts, unrestricted shell and write access. Run this
+only inside an isolated, disposable environment such as a devcontainer.
+
+HARNESS_CMD: codex exec --dangerously-bypass-approvals-and-sandbox "{{PROMPT}}"
 
 ## Preamble
 

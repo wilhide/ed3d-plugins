@@ -1,5 +1,18 @@
 # Changelog
 
+## [ed3d-plan-and-execute] [1.15.0]
+
+Catch repo-blind harnesses at setup time instead of mid-run, and default the harness to full-auto codex for isolated-devcontainer use.
+
+**Changed (breaking for shared use):**
+- The default `HARNESS_CMD` is now `codex exec --dangerously-bypass-approvals-and-sandbox "{{PROMPT}}"` — full-auto: no sandbox, no approvals, unrestricted shell and write access. This fork assumes autonomous runs happen inside an isolated, disposable devcontainer where the container boundary is the sandbox; codex's own read-only sandbox silently degrades to prompt-only answers where user namespaces are restricted, which is worse there. `/auto-mode`, the generated config file, the skill, and the docs all warn prominently; on a bare host, configure a sandboxed `HARNESS_CMD:` explicitly.
+
+**New:**
+- `/auto-mode` now smoke-tests the configured harness after writing the config file: it asks the harness to read back the first line of a repo file and judges by reply content, since codex exits 0 and answers from the prompt alone when its sandbox can't initialize (bwrap/user-namespace restrictions in containers and on Ubuntu 23.10+). On failure it explains the degradation and offers remedies: allow unprivileged user namespaces, switch codex to its deprecated-but-working Landlock backend (`-c use_legacy_landlock=true`) as a stopgap, or switch to the full-auto default where the environment itself is contained.
+
+**Changed:**
+- `asking-questions-autonomously` Step 5 now requires logging a caveat when the harness discloses it couldn't inspect the repository, and treating such prompt-only answers with less trust on repository-dependent questions
+
 ## [ed3d-plan-and-execute] [1.14.0]
 
 Autonomous-mode harness answers now show their reasoning, and `/auto-mode` sets the whole thing up interactively.

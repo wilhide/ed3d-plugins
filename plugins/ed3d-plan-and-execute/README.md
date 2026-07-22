@@ -247,7 +247,9 @@ Run `/auto-mode` (or create `.ed3d/autonomous-mode.md` yourself — presence alo
 
 Every question is sent with a preamble that casts the harness as the project's decision-maker on an unattended run — instructed to verify claims against the repository rather than agree by default — and the harness must reply with brief reasoning plus a final `ANSWER:` line, so the log captures why, not just what.
 
-Configure with a `HARNESS_CMD:` line (defaults to `codex exec` if omitted) and an optional `## Preamble` section (defaults to the framing above). `/auto-mode` sets the file up interactively; run `/how-to-customize` for the file format and more detail.
+**⚠️ The default `HARNESS_CMD` runs codex in full-auto bypass mode** (`codex exec --dangerously-bypass-approvals-and-sandbox`): no sandbox, no approval prompts, unrestricted shell and write access. This fork assumes autonomous runs happen inside an isolated, disposable devcontainer where the container boundary is the sandbox — codex's own sandbox silently degrades to prompt-only, repo-blind answers where user namespaces are restricted (containers, Ubuntu 23.10+), which is worse. On a bare host, configure a sandboxed `HARNESS_CMD:` (e.g. `--sandbox read-only -c approval_policy=never`) instead.
+
+Configure with a `HARNESS_CMD:` line (full-auto codex default above if omitted) and an optional `## Preamble` section (defaults to the decision-maker framing). `/auto-mode` sets the file up interactively and smoke-tests that the harness can actually read the repository. Run `/how-to-customize` for the file format and more detail.
 
 ---
 

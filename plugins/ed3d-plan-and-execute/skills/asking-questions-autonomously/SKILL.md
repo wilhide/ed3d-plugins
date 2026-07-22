@@ -27,16 +27,16 @@ Read `.ed3d/autonomous-mode.md`. Its presence is the entire switch — an empty 
 **1. `HARNESS_CMD:` line** — a command template using `{{PROMPT}}` as a placeholder — a literal, fixed token, always replaced with the 8 characters `$PROMPT` (a shell variable reference), never with the prompt text itself. See Step 2 for why.
 
 ```
-HARNESS_CMD: codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"
+HARNESS_CMD: codex exec --dangerously-bypass-approvals-and-sandbox "{{PROMPT}}"
 ```
 
 If there is no `HARNESS_CMD:` line, use this default:
 
 ```
-codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"
+codex exec --dangerously-bypass-approvals-and-sandbox "{{PROMPT}}"
 ```
 
-`--sandbox read-only` is deliberate: the harness is answering a question, not editing files. It may read the repository for context, but it should never need write access to do that.
+**⚠️ The default runs codex in full-auto bypass mode** — no OS sandbox, no approval prompts, unrestricted shell and write access. This fork assumes autonomous runs happen inside an isolated, disposable devcontainer whose container boundary is the real sandbox. That trade is deliberate: codex's own sandbox (`--sandbox read-only`) needs unprivileged user namespaces and, where it can't get them (common in containers), it silently degrades to prompt-only answers — worse than no sandbox in an environment that's already contained. If the harness runs anywhere that isn't disposable, configure a sandboxed command instead (`codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"`). Either way, the harness's job is only to answer questions — nothing in this skill ever asks it to modify files.
 
 **2. `## Preamble` section** — text prepended to every harness prompt (Step 1). Everything under that heading, up to the next heading or end of file, is the preamble. If there is no `## Preamble` section, use this default:
 
@@ -82,14 +82,14 @@ PROMPT_EOF
 Take `HARNESS_CMD` and replace its `{{PROMPT}}` placeholder with the literal text `$PROMPT` (the variable reference from Step 2, not the prompt content). Run it with three defenses against hanging or losing output — headless model calls are slow, and a Bash call that produces nothing is otherwise impossible to diagnose:
 
 1. **Set the Bash tool's own `timeout` parameter to at least 300000 (milliseconds), every time.** Its default is 120000ms (2 minutes) — well under what a headless model call needs. A 300-second harness call gets killed by the *tool* before the command finishes if you don't override this. It does not carry over from a previous call; set it explicitly on each one.
-2. **Redirect stdin from `/dev/null`.** `codex exec` reads from stdin even when a prompt argument is given — without a closed stdin it prints "Reading additional input from stdin..." and hangs waiting for input that will never arrive. That hang, not the model call itself, is what actually eats the timeout budget. Verified: omitting `< /dev/null` produces that exact message and never returns; adding it returns cleanly.
+2. **Redirect stdin from `/dev/null`.** `codex exec` reads from stdin even when a prompt argument is given — without a closed stdin it prints "Reading additional input from stdin..." and hangs waiting for input that will never arrive. That hang, not the model call itself, is what actually eats the timeout budget. Verified: omitting `< /dev/null` never returns; adding it returns cleanly. (The message itself can still print even with stdin redirected — the difference is returning versus hanging, so judge by that, not by the message.)
 3. **Capture combined stdout+stderr to a scratch file**, not just inline output, so a hung or failed process still leaves something to inspect.
 
 **Do not wrap the command in a shell-level `timeout` utility.** It is GNU coreutils, not a POSIX/BSD standard tool — it doesn't exist by default on macOS (no `timeout`, no `gtimeout` without an extra Homebrew install), so a command built around it fails immediately with "command not found" on exactly the kind of machine this skill needs to run on. The Bash tool's own `timeout` parameter from step 1 is the only timeout enforcement needed; it doesn't depend on anything being installed in the target shell.
 
 ```bash
 OUTPUT_FILE=$(mktemp)
-codex exec --sandbox read-only -c approval_policy=never "$PROMPT" < /dev/null > "$OUTPUT_FILE" 2>&1
+codex exec --dangerously-bypass-approvals-and-sandbox "$PROMPT" < /dev/null > "$OUTPUT_FILE" 2>&1
 EXIT_CODE=$?
 cat "$OUTPUT_FILE"
 ```
@@ -118,6 +118,8 @@ Append to `docs/autonomous-log.md` at the repo root (create it with a `# Autonom
 **Answered:** [the harness's ANSWER line, verbatim]
 **Decision:** [resolved option label or answer text used, including any placeholder content]
 ```
+
+If the harness's reply discloses that it could not inspect the repository (sandbox init failure, shell/tool errors — codex degrades to prompt-only reasoning silently, with exit code 0), record that caveat in the log entry alongside the reasoning and mention it when acting on the decision: an answer grounded only in prompt context deserves less trust on repository-dependent questions. `/auto-mode`'s smoke test catches this at setup, but environments change between setup and run.
 
 This is the audit trail for a run nobody watched live. Log every exchange, not just the ones that mattered.
 
