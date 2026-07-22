@@ -30,6 +30,10 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **The design plan tells you WHERE you're going. Codebase investigation tells you HOW to get there from where you are.**
 
+## Autonomous Mode
+
+Check for `.ed3d/autonomous-mode.md` at the repo root before the "When You Don't Know How to Proceed" `AskUserQuestion`, the Test Requirements approval ask, or any other stop in this skill. If it exists, don't wait on the user — use ed3d-plan-and-execute:asking-questions-autonomously to get the answer from the configured harness instead, and continue. Review Mode Selection is hardcoded rather than shelled out — see that section below.
+
 ## Before Starting
 
 **REQUIRED: Verify scope and codebase state**
@@ -50,7 +54,13 @@ Tell the user:
 
 ### 2. Review Mode Selection
 
-**After scope validation, ask how to handle phase reviews:**
+**After scope validation, determine how to handle phase reviews.**
+
+Check for `.ed3d/autonomous-mode.md` at the repo root.
+
+**If it exists (autonomous mode):** Always use "Write all phases to disk, I'll review afterwards" — no asking, and no shelling to a harness either, since this isn't a judgment call. Proceed straight to the batch workflow below.
+
+**If it does not exist (interactive mode):**
 
 Use AskUserQuestion:
 ```
@@ -780,7 +790,7 @@ Which approach should I take?
 
 **Before starting:**
 - [ ] Count phases - refuse if >8
-- [ ] Ask user for review mode (batch vs interactive)
+- [ ] Determine review mode (batch, always, in autonomous mode; ask in interactive mode)
 - [ ] Capture absolute paths: DESIGN_PATH and PLAN_DIR
 - [ ] Read Acceptance Criteria section from design plan
 - [ ] Create granular task list with TaskCreate (NA, NB, NC, ND per phase + Finalization + Test Requirements)

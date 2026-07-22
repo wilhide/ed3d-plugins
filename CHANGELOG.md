@@ -1,5 +1,21 @@
 # Changelog
 
+## [ed3d-plan-and-execute] [1.13.0]
+
+Add an opt-in autonomous mode that runs the full design → plan → execute pipeline unattended, from `/start-design-plan` through a pushed PR, without stopping for human input.
+
+**New:**
+- `.ed3d/autonomous-mode.md` — presence alone turns on autonomous mode across the whole pipeline
+- `asking-questions-autonomously` skill — routes every `AskUserQuestion` and other stop-and-ask point through a configured external harness (e.g. `codex exec`) instead of waiting on a human, logs each exchange to `docs/autonomous-log.md`, and halts via `NEEDS_HUMAN_INPUT.md` if the harness can't answer
+- `adversarial-design-review` skill — after a design document is committed in autonomous mode, dispatches it to the harness for a red-team pass (find gaps/contradictions, fix, re-review, capped at 3 cycles) before implementation planning starts
+
+**Changed:**
+- Implementation planning always uses a worktree and always writes all phases to disk before review in autonomous mode — these were mechanical defaults, not real judgment calls, so they're hardcoded rather than asked or shelled out
+- `finishing-a-development-branch` always pushes and opens a PR in autonomous mode rather than asking among 4 options; merging to main and discarding work stay human-only decisions, never delegated to the harness
+- The `/clear` handoffs between design → plan and plan → execute are skipped in autonomous mode in favor of chaining directly to the next skill in the same session via the Skill tool, relying on auto-compaction instead of fresh context
+- `starting-a-design-plan`, `brainstorming`, `asking-clarifying-questions`, `writing-design-plans`, `starting-an-implementation-plan`, `using-git-worktrees`, `writing-implementation-plans`, `executing-an-implementation-plan`, and `requesting-code-review` each gained an "Autonomous Mode" section pointing their `AskUserQuestion` calls and human escalations at `asking-questions-autonomously` when `.ed3d/autonomous-mode.md` is present
+- README and `/how-to-customize` document the new `.ed3d/autonomous-mode.md` convention alongside the existing design/implementation guidance files
+
 ## [ed3d-basic-agents] 1.2.0, [ed3d-extending-claude] 1.2.0, [ed3d-plan-and-execute] 1.12.0, [ed3d-playwright] 1.1.0, [ed3d-research-agents] 1.2.0, [ed3d-session-reflection] 0.3.0
 
 Nested subagent spawning is now explicitly disabled across repository subagents and workflow documentation.

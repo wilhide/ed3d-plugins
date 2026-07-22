@@ -30,6 +30,12 @@ If `docs/design-plans/` doesn't exist or is empty, ask the user to provide the p
 
 **Never assume, infer, or guess which design plan to use.** The user must explicitly tell you.
 
+**Exception:** if this skill was chained directly from `starting-a-design-plan`'s autonomous-mode handoff, the design plan path is already provided — don't ask, use the path you were given.
+
+## Autonomous Mode
+
+Check for `.ed3d/autonomous-mode.md` at the repo root before any `AskUserQuestion` call or other stop in this skill. If it exists, don't wait on the user — use ed3d-plan-and-execute:asking-questions-autonomously to get the answer instead, and continue. Branch setup (worktree usage, branch naming) and the Execution Handoff have their own hardcoded autonomous-mode behavior described in those sections below — they don't ask at all, autonomous or not.
+
 ## The Process
 
 This skill has three steps:
@@ -74,7 +80,13 @@ This slug is used for:
 
 The slug ensures AC identifiers are globally unique across multiple plan-and-execute rounds.
 
-**Step 1: Ask about worktree**
+**Step 1: Determine worktree usage**
+
+Check for `.ed3d/autonomous-mode.md` at the repo root.
+
+**If it exists (autonomous mode):** Always use a worktree — no asking, and no shelling to a harness either, since this isn't a judgment call. Skip straight to Step 2's "Yes - create worktree" path, using `[friendly-name]` (derived from the design plan slug, no `$(whoami)/` prefix) as the branch name.
+
+**If it does not exist (interactive mode):**
 
 **REQUIRED: Use AskUserQuestion tool**
 
@@ -88,18 +100,20 @@ Options:
 
 **Step 2: Set up workspace based on choice**
 
-**If user chooses "Yes - create worktree":**
+**If user chooses "Yes - create worktree" (or autonomous mode selected it automatically):**
 
 1. **REQUIRED SUB-SKILL:** Use ed3d-plan-and-execute:using-git-worktrees
 2. **CONDITIONAL SKILLS:** Activate any project-specific git worktree skills if they exist
 3. Announce: "I'm using the using-git-worktrees skill to create an isolated workspace."
-4. Ask user which branch to use for the worktree:
-   ```
-   Question: "Which branch should I use for this worktree?"
-   Options:
-     - "[friendly-name]" (e.g., oauth2-svc-authn)
-     - "$(whoami)/[friendly-name]" (e.g., ed/oauth2-svc-authn)
-   ```
+4. Determine the branch name:
+   - **Autonomous mode:** Use `[friendly-name]` (derived from the design plan slug) without asking.
+   - **Interactive mode:** Ask user which branch to use for the worktree:
+     ```
+     Question: "Which branch should I use for this worktree?"
+     Options:
+       - "[friendly-name]" (e.g., oauth2-svc-authn)
+       - "$(whoami)/[friendly-name]" (e.g., ed/oauth2-svc-authn)
+     ```
 5. Create worktree:
    - Default location (unless directed otherwise): `$repoRoot/.worktrees/[friendly-name]`
    - Branch from main/master
@@ -107,7 +121,7 @@ Options:
 6. Change to worktree directory
 7. Announce: "Worktree created at `.worktrees/[friendly-name]` on branch `[branch-name]`"
 
-**If user chooses "No - work in current directory":**
+**If user chooses "No - work in current directory" (interactive mode only — autonomous mode always creates a worktree and never reaches this branch):**
 
 1. Ask user which branch to use:
    ```
@@ -222,7 +236,7 @@ Mark "Execution handoff" task as in_progress.
 
 After planning is complete, hand off to execution.
 
-**Do NOT invoke execute-plan directly.** The user needs to /clear context first.
+Check for `.ed3d/autonomous-mode.md` at the repo root — it determines which of Step 2's two paths you take below. Interactive mode still requires /clear; autonomous mode chains directly.
 
 **Step 1: Capture and verify absolute paths**
 
@@ -245,7 +259,19 @@ ls -d "${WORKING_ROOT}/docs/implementation-plans/YYYY-MM-DD-feature-name"
 
 **Both commands must succeed.** If the plan directory doesn't exist, something went wrong during planning — investigate before proceeding.
 
-**Step 2: Provide copy-paste instructions with verified absolute paths**
+**Step 2a: Autonomous mode — chain directly**
+
+**Do NOT print copy-paste instructions or ask the user to `/clear`.**
+
+1. Announce: "Implementation plan complete. Continuing directly into execution."
+2. Change working directory to the worktree/working root you captured in Step 1.
+3. Use your Skill tool to invoke `ed3d-plan-and-execute:executing-an-implementation-plan` in this same session, providing the absolute plan directory path and absolute working directory path you verified in Step 1 — skip that skill's "which implementation plan" question, you already have both paths.
+
+**Why chain directly instead of /clear:** there's no human to hand a copy-paste command to. Auto-compaction handles context growth instead — the explicit trade-off autonomous mode makes for not stopping.
+
+**Step 2b: Interactive mode — provide copy-paste instructions with verified absolute paths**
+
+**Do NOT invoke execute-plan directly.** The user needs to /clear context first.
 
 Use the actual paths you captured and verified in Step 1. Example output:
 
@@ -273,7 +299,7 @@ The execute-implementation-plan command will implement the plan task-by-task wit
 
 **Why absolute paths:** After /clear, Claude Code returns to the original session directory (often the repo root, not the worktree). Absolute paths ensure execution happens in the correct directory regardless of where /clear returns.
 
-**Why /clear instead of continuing:**
+**Why /clear instead of continuing (interactive mode):**
 - Execution needs fresh context to work effectively
 - Long conversations accumulate context that degrades quality
 - /clear gives the execution phase a clean slate
@@ -284,8 +310,9 @@ Mark "Execution handoff" task as completed.
 
 | Mistake | Fix |
 |---------|-----|
-| Invoking execute-implementation-plan directly | Provide copy-paste instructions instead |
-| Not warning user to copy command before /clear | Always warn: "Copy this BEFORE running /clear" |
+| Invoking execute-implementation-plan directly in interactive mode | Provide copy-paste instructions instead |
+| Printing copy-paste /clear instructions in autonomous mode | Chain directly via the Skill tool instead — there's no human to hand a command to |
+| Not warning user to copy command before /clear (interactive mode) | Always warn: "Copy this BEFORE running /clear" |
 | Using relative paths in handoff command | Run bash commands to get absolute paths, verify they exist |
 | Outputting placeholder paths like `[WORKING_ROOT]` | Output real paths from `git rev-parse --show-toplevel` and `ls -d` |
 | Not verifying plan directory exists | Always `ls -d` the full plan path before outputting command |

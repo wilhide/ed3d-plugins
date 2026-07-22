@@ -14,6 +14,10 @@ Guide completion of development work by presenting clear options and handling ch
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
+## Autonomous Mode
+
+Check for `.ed3d/autonomous-mode.md` at the repo root. If it exists: skip Step 3's 4-option ask and always take Option 2 (push and create PR) — a policy default, not a question shelled to a harness. Merging to main (Option 1) and discarding work (Option 4) are never available in autonomous mode; those stay human-only decisions. Step 2's base-branch confirmation, if it comes up, does route through ed3d-plan-and-execute:asking-questions-autonomously — see that step below.
+
 ## The Process
 
 ### Step 1: Verify Tests
@@ -45,11 +49,15 @@ Stop. Don't proceed to Step 2.
 git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
 ```
 
-Or ask: "This branch split from main - is that correct?"
+If that's ambiguous, ask: "This branch split from main - is that correct?" In autonomous mode (`.ed3d/autonomous-mode.md` exists), route this through ed3d-plan-and-execute:asking-questions-autonomously instead of waiting on the user.
 
 ### Step 3: Present Options
 
-Present exactly these 4 options in `AskUserQuestion`.
+Check for `.ed3d/autonomous-mode.md` at the repo root.
+
+**If it exists (autonomous mode):** Skip the ask entirely and take Option 2 (Push and create a Pull Request) — no shelling to a harness either, since this isn't a judgment call to delegate. A PR leaves a real human checkpoint before anything reaches main, which is the point: an unattended run should never be the one deciding to merge to main or discard work. Announce: "Implementation complete. Pushing and opening a PR (autonomous mode default)." Proceed to Step 4, Option 2.
+
+**If it does not exist (interactive mode):** Present exactly these 4 options in `AskUserQuestion`.
 
 ```
 Implementation complete. What would you like to do?
@@ -63,6 +71,8 @@ Which option?
 ```
 
 **Don't add explanation** - keep options concise.
+
+**Options 1 and 4 are unreachable in autonomous mode.** Merging to main and discarding work are both irreversible-enough that they stay human-only decisions — never route them through `asking-questions-autonomously`, and never let a harness pick them.
 
 ### Step 4: Execute Choice
 

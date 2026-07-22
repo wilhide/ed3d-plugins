@@ -34,6 +34,20 @@ Loaded when starting an implementation plan and again during the final all-phase
 - **Commit conventions**: Message format, granularity
 - **Project-specific patterns**: How things are done here
 
+### `.ed3d/autonomous-mode.md`
+
+Presence alone turns on autonomous mode across the whole design → plan → execute pipeline: every place a skill would normally call `AskUserQuestion` or stop to wait on you instead shells the question out to an external harness (a second AI, run headless) and treats its answer as yours. Mechanical choices that were never really judgment calls (worktree usage, batch vs. interactive plan writing) get hardcoded defaults instead of being asked or shelled at all. The two `/clear` handoffs (design → plan, plan → execute) are skipped in favor of chaining directly to the next skill in the same session, relying on auto-compaction instead of fresh context.
+
+**What to include:**
+- A `HARNESS_CMD:` line with the command template to run, using `{{PROMPT}}` as the placeholder for the question text. Defaults to `codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"` if omitted.
+
+**What it changes beyond question-answering:**
+- After a design document is committed, `adversarial-design-review` dispatches it to the harness for a red-team pass (find gaps/contradictions, fix, re-review — capped at 3 cycles) before implementation planning starts.
+- Implementation planning always uses a worktree and always writes all phases to disk before review — no asking.
+- `finishing-a-development-branch` always pushes and opens a PR rather than asking among 4 options — merging to main and discarding work stay human-only decisions, never delegated to the harness.
+- Every shelled question and answer is logged to `docs/autonomous-log.md` — that's the audit trail for a run nobody watched live.
+- If the harness can't answer (not installed, errors, unparseable reply after one retry), the workflow halts and writes `NEEDS_HUMAN_INPUT.md` at the repo root rather than guessing.
+
 ## Example Files
 
 ### `.ed3d/design-plan-guidance.md`
@@ -87,8 +101,18 @@ Loaded when starting an implementation plan and again during the final all-phase
 - Tests and implementation in same commit
 ```
 
+### `.ed3d/autonomous-mode.md`
+
+```markdown
+Enables autonomous mode: every AskUserQuestion in the plan-and-execute
+pipeline gets answered by the harness below instead of waiting on a human.
+
+HARNESS_CMD: codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"
+```
+
 ## Notes
 
 - If the guidance files don't exist, the standard workflow proceeds without them
 - Guidance is incorporated into context, not shown to you directly
 - Update guidance files as your project evolves
+- `.ed3d/autonomous-mode.md` is different from the two guidance files above: its mere presence changes control flow (who answers questions, whether `/clear` handoffs happen), not just the content of prompts

@@ -14,6 +14,10 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
+## Autonomous Mode
+
+Check for `.ed3d/autonomous-mode.md` at the repo root before asking the user for a worktree directory (Directory Selection step 3) or asking whether to proceed after a failing baseline test run (Creation Steps step 4, Verify Clean Baseline). If it exists, don't wait on the user — use ed3d-plan-and-execute:asking-questions-autonomously to get the answer from the configured harness instead, and continue.
+
 ## Directory Selection Process
 
 Follow this priority order:

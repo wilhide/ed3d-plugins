@@ -23,7 +23,7 @@ Rough Idea
 /execute-implementation-plan ──► Working Code (reviewed & committed)
 ```
 
-Each phase produces artifacts that feed the next. You clear context between phases to ensure fresh, focused work.
+Each phase produces artifacts that feed the next. By default you clear context between phases to ensure fresh, focused work — or run the whole thing unattended in [Autonomous Mode](#autonomous-mode), which chains straight through instead.
 
 ---
 
@@ -127,7 +127,7 @@ After all tasks:
 
 **Code review at every step.** Issues caught early are cheaper than issues caught at PR review. The review-fix loop runs until zero issues, not until "good enough."
 
-**Fresh context between phases.** You /clear between design → plan and plan → execute. Each phase gets full context for its specific job.
+**Fresh context between phases (by default).** You /clear between design → plan and plan → execute. Each phase gets full context for its specific job. [Autonomous Mode](#autonomous-mode) trades this for chaining straight through and relying on auto-compaction instead.
 
 ---
 
@@ -200,6 +200,8 @@ After planning, same pattern:
 /execute-implementation-plan @docs/implementation-plans/2025-01-14-your-feature .
 ```
 
+**Or, run it unattended:** create `.ed3d/autonomous-mode.md` first (see [Autonomous Mode](#autonomous-mode)) and `/start-design-plan` chains straight through to a pushed PR without stopping for you.
+
 ---
 
 ## Utility Command: `/flesh-it-out`
@@ -223,8 +225,27 @@ Provide project-specific guidance by creating files in a `.ed3d/` directory:
 
 - `.ed3d/design-plan-guidance.md` — Loaded before clarification in `/start-design-plan`. Define domain terminology, architectural constraints, technology preferences, and scope boundaries.
 - `.ed3d/implementation-plan-guidance.md` — Loaded when creating implementation plans and during final code review. Specify coding standards, testing requirements, and review criteria.
+- `.ed3d/autonomous-mode.md` — Turns on [Autonomous Mode](#autonomous-mode). Presence alone changes control flow, not just prompt content.
 
 Run `/how-to-customize` for details and example files.
+
+---
+
+## Autonomous Mode
+
+Create `.ed3d/autonomous-mode.md` and the whole pipeline runs unattended, from `/start-design-plan` through a pushed PR, without stopping for you at any point along the way.
+
+**What changes:**
+
+- **Every `AskUserQuestion` gets shelled out instead.** Anywhere a skill would normally stop and ask you something — clarifying questions, Definition of Done confirmation, "does this look right so far," blocked implementation decisions, three-strike review escalations — it instead runs a configured external harness (a second AI, headless) with the same question and treats the answer as yours.
+- **A second model red-teams the design.** After the design document is committed, `adversarial-design-review` sends it to the harness with instructions to find gaps and contradictions, not rubber-stamp it. Fixes loop up to 3 cycles before moving on.
+- **Mechanical choices get hardcoded, not asked.** Implementation planning always uses a worktree and always writes all phases to disk before review — these were never real judgment calls, so nothing gets shelled out for them either.
+- **No `/clear` handoffs.** Design → plan → execute chains directly in the same session via the Skill tool, relying on auto-compaction instead of fresh context per phase.
+- **Finishing always opens a PR.** Merging to main and discarding work stay human-only decisions — autonomous mode never picks either, regardless of what a harness might say.
+- **Every decision is logged.** `docs/autonomous-log.md` records each shelled question, the harness's answer, and the decision taken — the audit trail for a run nobody watched live.
+- **Failure halts, it doesn't guess.** If the harness can't be reached or its answer can't be resolved, the workflow writes `NEEDS_HUMAN_INPUT.md` at the repo root with full context and stops rather than picking a default on a real judgment call.
+
+Configure the harness with a `HARNESS_CMD:` line (defaults to `codex exec` if omitted). Run `/how-to-customize` for the file format and more detail.
 
 ---
 

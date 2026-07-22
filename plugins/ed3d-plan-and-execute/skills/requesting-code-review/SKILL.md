@@ -18,6 +18,10 @@ Dispatch ed3d-plan-and-execute:code-reviewer subagent to catch issues before the
 
 This prevents collisions when multiple planning/execution sessions run in parallel. The SCRATCHPAD_DIR is a namespaced temp directory (e.g., `/tmp/plan-2025-01-24-feature-a7f3b2/`) that the code-reviewer uses for any scratch files.
 
+## Autonomous Mode
+
+Check for `.ed3d/autonomous-mode.md` at the repo root before any stop in this skill — operational-error reports and the third-failure timeout escalation both say "stop and ask human for help." If it exists, don't wait on the user — use ed3d-plan-and-execute:asking-questions-autonomously to get the answer from the configured harness instead, and continue.
+
 ## When to Request Review
 
 **Mandatory:**

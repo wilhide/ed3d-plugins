@@ -16,6 +16,10 @@ Complete the design document by appending validated design from brainstorming to
 
 **Context:** Design document already exists with Title, Summary placeholder, confirmed Definition of Done, and Glossary placeholder. This skill appends the body and fills in placeholders.
 
+## Autonomous Mode
+
+Check for `.ed3d/autonomous-mode.md` at the repo root before the Acceptance Criteria approval `AskUserQuestion`. If it exists, don't wait on the user — use ed3d-plan-and-execute:asking-questions-autonomously to get the answer from the configured harness instead, and continue.
+
 ## Level of Detail: Design vs Implementation
 
 **Design plans are directional and archival.** They can be checked into git and referenced months later. Other design plans may depend on contracts specified here.

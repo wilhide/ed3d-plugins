@@ -29,6 +29,10 @@ Do NOT use for:
 - Validating completed designs (that's brainstorming Phase 3)
 - Asking for initial requirements (that's starting-a-design-plan Phase 1)
 
+## Autonomous Mode
+
+Check for `.ed3d/autonomous-mode.md` at the repo root before any `AskUserQuestion` call in this skill (contradiction surfacing, terminology/scope/assumption disambiguation, and the Definition of Done confirmation). If it exists, don't wait on the user — use ed3d-plan-and-execute:asking-questions-autonomously to get the answer from the configured harness instead, and continue.
+
 ## Before Clarifying
 
 Try to answer your own questions and disambiguate from the context of the working directory. Use available subagents, such as `codebase-investigator`, to explore for existing work that can help explain the the subject under clarification. When you recognize elements such as common technologies or proper nouns, use `combined-researcher` instead to synthesize both the codebase and internet searches.

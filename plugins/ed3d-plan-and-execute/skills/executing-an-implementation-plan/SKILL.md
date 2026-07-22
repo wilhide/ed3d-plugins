@@ -54,6 +54,12 @@ If `docs/implementation-plans/` doesn't exist or is empty, ask the user to provi
 
 **Never assume, infer, or guess which plan to execute.** The user must explicitly tell you.
 
+**Exception:** if this skill was chained directly from `starting-an-implementation-plan`'s autonomous-mode handoff, both paths are already provided — don't ask, use what you were given.
+
+## Autonomous Mode
+
+Check for `.ed3d/autonomous-mode.md` at the repo root before any `AskUserQuestion` call or other stop in this skill — including a plan-gap surfaced during test-coverage verification (Execute All Tasks), and every "three-strike" escalation to a human (phase code review loop, test-analyst coverage loop). If it exists, don't wait on the user — use ed3d-plan-and-execute:asking-questions-autonomously to get the answer from the configured harness instead, and continue. The mandatory human-transparency printing of subagent responses still applies — autonomous mode changes who answers questions, not what gets logged.
+
 ## The Process
 
 ### 1. Discover Phases

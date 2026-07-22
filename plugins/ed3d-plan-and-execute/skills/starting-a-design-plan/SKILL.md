@@ -8,7 +8,7 @@ user-invocable: false
 
 ## Overview
 
-Orchestrate the complete design workflow from initial idea to implementation-ready documentation through six structured phases: context gathering, clarification, definition of done, brainstorming, design documentation, and planning handoff.
+Orchestrate the complete design workflow from initial idea to implementation-ready documentation through structured phases: context gathering, clarification, definition of done, brainstorming, design documentation, adversarial review (autonomous mode only), and planning handoff.
 
 **Core principle:** Progressive information gathering -> clear understanding -> creative exploration -> validated design -> documented plan.
 
@@ -23,7 +23,12 @@ Orchestrate the complete design workflow from initial idea to implementation-rea
 | **3. Definition of Done** | Synthesize and confirm deliverables before brainstorming | Confirmed success criteria |
 | **4. Brainstorming** | Invoke brainstorming skill | Validated design (in conversation) |
 | **5. Design Documentation** | Invoke writing-design-plans skill | Committed design document |
-| **6. Planning Handoff** | Offer to invoke writing-plans skill | Implementation plan (optional) |
+| **6. Adversarial Design Review** *(autonomous mode only)* | Invoke adversarial-design-review skill | Design vetted by a second harness |
+| **7. Planning Handoff** | Chain into implementation planning (autonomous) or offer to (interactive) | Implementation plan |
+
+## Autonomous Mode
+
+Check for `.ed3d/autonomous-mode.md` at the repo root before any `AskUserQuestion` call or other stop in this skill (Phase 3's Definition of Done confirmation and plan-name selection, and anything asking-clarifying-questions or brainstorming ask on your behalf). If it exists, don't wait on the user — use ed3d-plan-and-execute:asking-questions-autonomously to get the answer from the configured harness instead, and continue. Phase 6 and the Phase 7 handoff have their own autonomous-mode behavior described in those sections below.
 
 ## The Process
 
@@ -37,7 +42,8 @@ Use TaskCreate to create todos for each phase (or TodoWrite in older Claude Code
 - Phase 3: Definition of Done (deliverables confirmed)
 - Phase 4: Brainstorming (design validated)
 - Phase 5: Design Documentation (design written to docs/design-plans/)
-- Phase 6: Planning Handoff (implementation plan offered/created)
+- (conditional) Phase 6: Adversarial Design Review (if `.ed3d/autonomous-mode.md` exists)
+- Phase 7: Planning Handoff (implementation plan chained or offered)
 
 Use TaskUpdate to mark each phase as in_progress when working on it, completed when finished (or TodoWrite in older versions).
 
@@ -290,11 +296,42 @@ The writing-design-plans skill will:
 
 Mark Phase 5 as completed when design document is committed.
 
-### Phase 6: Planning Handoff
+### Phase 6: Adversarial Design Review (Autonomous Mode Only)
 
-After design is documented, guide user to create implementation plan in fresh context.
+Check for `.ed3d/autonomous-mode.md` at the repo root.
+
+**If it does not exist:** Skip this phase entirely — do not create or mark its task. Proceed to Phase 7.
+
+**If it exists:**
 
 Use TaskUpdate to mark Phase 6 as in_progress.
+
+**REQUIRED SUB-SKILL:** Use ed3d-plan-and-execute:adversarial-design-review
+
+Announce: "I'm using the adversarial-design-review skill to get a second opinion on this design before implementation planning starts."
+
+The skill will dispatch the committed design to an external harness for red-team review, fix Critical/Important issues it finds (looping up to 3 cycles), and log the exchange to `docs/autonomous-log.md`. It proceeds even if issues remain after 3 cycles, logging what's outstanding rather than blocking.
+
+**Output:** Design document, possibly revised, with any unresolved findings documented.
+
+Mark Phase 6 as completed when the skill finishes (with or without remaining findings).
+
+### Phase 7: Planning Handoff
+
+After design is documented (and adversarially reviewed, if autonomous), move to implementation planning.
+
+Use TaskUpdate to mark Phase 7 as in_progress.
+
+Check for `.ed3d/autonomous-mode.md` at the repo root.
+
+**If it exists (autonomous mode):**
+
+**Do NOT print copy-paste instructions or ask the user to `/clear`.** Chain directly into implementation planning in this same session, relying on auto-compaction rather than a fresh context:
+
+1. Announce: "Design complete and committed to `docs/design-plans/[filename]`. Continuing directly into implementation planning."
+2. Use your Skill tool to invoke `ed3d-plan-and-execute:starting-an-implementation-plan` in this same session, providing the absolute path to the design document you just wrote (skip that skill's "which design plan" question — you already have the path).
+
+**If it does not exist (interactive mode):**
 
 **Do NOT create implementation plan directly.** The user needs to /clear context first.
 
@@ -323,12 +360,14 @@ Ready to create the implementation plan? This requires fresh context to work eff
 The start-implementation-plan command will create detailed tasks, set up a branch, and prepare for execution.
 ```
 
-**Why /clear instead of continuing:**
+**Why /clear instead of continuing (interactive mode):**
 - Implementation planning needs fresh context for codebase investigation
 - Long conversations accumulate context that degrades quality
 - /clear gives the next phase a clean slate
 
-Mark Phase 6 as completed after providing instructions.
+**Why chain directly instead (autonomous mode):** there's no human to hand a copy-paste command to. Auto-compaction handles context growth instead — that's the explicit trade-off autonomous mode makes for not stopping.
+
+Mark Phase 7 as completed after chaining (autonomous) or providing instructions (interactive).
 
 ## When to Revisit Earlier Phases
 
@@ -351,11 +390,12 @@ You can and should go backward when:
 | "I know what done looks like, skip confirmation" | Confirm Definition of Done explicitly. Always run Phase 3. |
 | "Simple idea, skip brainstorming" | Brainstorming explores alternatives. Always run Phase 4. |
 | "Design is in conversation, don't need documentation" | Documentation is contract with writing-implementation-plans. Always run Phase 5. |
-| "Can invoke implementation planning directly" | Must /clear first. Provide copy-then-clear workflow. |
-| "I can combine phases for efficiency" | Each phase has distinct purpose. Run all six. |
+| "Can invoke implementation planning directly" | Interactive mode: must /clear first, provide copy-then-clear workflow. Autonomous mode: chain via the Skill tool, don't skip straight there without finishing Phases 1-6. |
+| "I can combine phases for efficiency" | Each phase has distinct purpose. Run all of them. |
 | "User knows what they want, less structure needed" | Structure ensures nothing is missed. Follow all phases. |
+| "Autonomous mode means I can skip the adversarial review, nobody's watching anyway" | That's exactly why it matters more, not less. Always run Phase 6 when `.ed3d/autonomous-mode.md` exists. |
 
-**All of these mean: STOP. Run all six phases in order.**
+**All of these mean: STOP. Run all phases in order.**
 
 ## Key Principles
 

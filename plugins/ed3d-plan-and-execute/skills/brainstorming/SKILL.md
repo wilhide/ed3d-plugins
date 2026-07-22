@@ -34,6 +34,10 @@ Use TaskCreate to create todos for each phase (or TodoWrite in older Claude Code
 
 Use TaskUpdate to mark each phase as in_progress when working on it, completed when finished (or TodoWrite in older versions).
 
+## Autonomous Mode
+
+Check for `.ed3d/autonomous-mode.md` at the repo root before any `AskUserQuestion` call in this skill, and before any open-ended validation question (e.g. Phase 3's "Does this look right so far?"). If it exists, don't wait on the user — use ed3d-plan-and-execute:asking-questions-autonomously to get the answer from the configured harness instead, and continue.
+
 ## Research Agents
 
 **DO NOT perform deep research yourself. Delegate to specialized agents.**
