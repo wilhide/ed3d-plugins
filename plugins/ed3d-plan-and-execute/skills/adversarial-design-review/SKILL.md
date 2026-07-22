@@ -53,9 +53,18 @@ default to skepticism, not approval.
 [full document text]
 ```
 
-Run via the harness command, same mechanics as `asking-questions-autonomously` Step 2 (300s timeout, treat command failure as harness failure).
+**Bind this prompt to a shell variable before running it — never splice the document text directly into the command.** A design document routinely contains code blocks, and code blocks routinely contain `!` (e.g. `println!`), backticks, embedded quotes, and `$`. Spliced directly into a double-quoted command string, any of these can misfire — this is exactly the risk `asking-questions-autonomously` Step 2 exists to eliminate, and it applies here even more, since this prompt is the largest and least predictable payload in the whole autonomous-mode mechanism. Use the same quoted-heredoc pattern:
 
-**If the harness fails to respond:** follow the same halt behavior as `asking-questions-autonomously` Step 5 (write `NEEDS_HUMAN_INPUT.md`, stop). Don't skip review silently just because the harness was unreachable.
+```bash
+PROMPT=$(cat <<'PROMPT_EOF'
+[the full review prompt above, including the complete design document text, verbatim]
+PROMPT_EOF
+)
+```
+
+Then run `HARNESS_CMD` with its `{{PROMPT}}` placeholder replaced by the literal text `$PROMPT` (300s timeout, treat command failure as harness failure) — same mechanics as `asking-questions-autonomously` Step 3.
+
+**If the harness fails to respond:** follow the same halt behavior as `asking-questions-autonomously` Step 6 (write `NEEDS_HUMAN_INPUT.md`, stop). Don't skip review silently just because the harness was unreachable.
 
 ### 3. Handle the Findings
 

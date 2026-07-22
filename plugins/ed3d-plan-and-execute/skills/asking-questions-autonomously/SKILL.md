@@ -22,7 +22,7 @@ Only when `.ed3d/autonomous-mode.md` exists at the repo root. Every other skill 
 
 ## Configuration
 
-Read `.ed3d/autonomous-mode.md`. It contains a `HARNESS_CMD:` line with a command template using `{{PROMPT}}` as a placeholder for the question text:
+Read `.ed3d/autonomous-mode.md`. It contains a `HARNESS_CMD:` line with a command template using `{{PROMPT}}` as a placeholder — a literal, fixed token, always replaced with the 8 characters `$PROMPT` (a shell variable reference), never with the prompt text itself. See Step 2 for why.
 
 ```
 HARNESS_CMD: codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"
@@ -48,23 +48,36 @@ Include, in this order:
    - With options: "Reply with ONLY the option label that best answers this, nothing else."
    - Without options (open-ended): "Reply with a short, direct answer."
 
-### 2. Run the Harness
+### 2. Bind the Prompt to a Shell Variable — Never Splice It Directly
 
-Substitute the prompt into `HARNESS_CMD` and run it via Bash with a generous timeout (300s) — headless model calls can be slow.
+**This step is not optional, even for short-looking prompts.** The text from Step 1 is content this skill doesn't control — design-doc excerpts and question text can contain `!`, embedded `"`, backticks, or `$(...)`. Spliced directly into a double-quoted command string, any of these can misfire: a literal `!` can trigger history expansion in a real interactive shell (`event not found`, or worse, silent substitution of an unrelated prior command), and a stray `` ` ``, `$(...)`, or `"` can break the quoting outright and run something other than what was intended. This is the same class of bug as SQL injection — untrusted text landing in a place that mixes data and code.
+
+Bind it to a shell variable via a quoted heredoc instead. The quoted delimiter (`'PROMPT_EOF'`) disables all expansion of the body — no variable expansion, no command substitution, no history expansion — so the content passes through exactly as written, whatever it contains:
+
+```bash
+PROMPT=$(cat <<'PROMPT_EOF'
+[the exact prompt text from Step 1, verbatim, unescaped]
+PROMPT_EOF
+)
+```
+
+### 3. Run the Harness
+
+Take `HARNESS_CMD` and replace its `{{PROMPT}}` placeholder with the literal text `$PROMPT` (the variable reference from Step 2, not the prompt content), then run the result via Bash with a generous timeout (300s) — headless model calls can be slow:
 
 ```bash
 codex exec --sandbox read-only -c approval_policy=never "$PROMPT"
 ```
 
-Capture stdout. Treat a nonzero exit code, empty stdout, or a command-not-found error as harness failure (see Step 5).
+Capture stdout. Treat a nonzero exit code, empty stdout, or a command-not-found error as harness failure (see Step 6).
 
-### 3. Resolve the Answer
+### 4. Resolve the Answer
 
 **With options:** Match the harness's reply against the option labels (case-insensitive, allow partial/fuzzy match — the harness may add a stray word). If exactly one option matches, that's the decision. If none match clearly, retry once with a sharper prompt: "Your answer must be exactly one of: [labels]. Reply with only the label." If the retry still doesn't match, treat as harness failure.
 
 **Without options:** Use the reply text directly as the answer.
 
-### 4. Log the Exchange
+### 5. Log the Exchange
 
 Append to `docs/autonomous-log.md` at the repo root (create it with a `# Autonomous Decision Log` header if it doesn't exist):
 
@@ -78,7 +91,7 @@ Append to `docs/autonomous-log.md` at the repo root (create it with a `# Autonom
 
 This is the audit trail for a run nobody watched live. Log every exchange, not just the ones that mattered.
 
-### 5. On Harness Failure — Stop, Don't Guess
+### 6. On Harness Failure — Stop, Don't Guess
 
 If the harness command fails, times out, or its reply can't be resolved to an answer after one retry:
 
@@ -89,7 +102,7 @@ If the harness command fails, times out, or its reply can't be resolved to an an
    **Why the harness failed:** [error text / timeout / unparseable reply]
    **To resume:** Answer the question above, then re-run the command that was in progress.
    ```
-2. Stop the entire workflow — do not proceed past this point, do not pick a default yourself, and do not retry beyond the one retry in Step 3.
+2. Stop the entire workflow — do not proceed past this point, do not pick a default yourself, and do not retry beyond the one retry in Step 4.
 
 **Why stop instead of picking a reasonable-looking default:** a wrong guess here compounds silently through every phase downstream, and nobody is watching the run to catch it. A clear halt with full context costs the human two minutes to resolve; a silent wrong guess can cost hours of misdirected work.
 
@@ -102,6 +115,7 @@ If the harness command fails, times out, or its reply can't be resolved to an an
 | "Logging is slowing this down" | The log is the only record of what happened. Always write it, even for trivial answers. |
 | "This one destructive-adjacent choice is probably fine to shell out" | If an action can't be undone by editing a file, it doesn't go through this skill. Check `finishing-a-development-branch`'s hardcoded defaults instead. |
 | "Harness failed once, I'll just proceed without an answer" | One retry, then halt via `NEEDS_HUMAN_INPUT.md`. Never proceed on an unresolved question. |
+| "This prompt is short/simple, I'll splice it into the command directly" | Length and apparent simplicity don't matter — you don't control what the calling skill put in the prompt. Always bind via the Step 2 heredoc, every time. |
 
 ## Integration
 
