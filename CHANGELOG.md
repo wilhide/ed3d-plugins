@@ -1,5 +1,18 @@
 # Changelog
 
+## [ed3d-plan-and-execute] [1.14.0]
+
+Autonomous-mode harness answers now show their reasoning, and `/auto-mode` sets the whole thing up interactively.
+
+**New:**
+- `/auto-mode` command — creates `.ed3d/autonomous-mode.md` (and the `.ed3d/` directory) after asking whether to use the default or a custom harness command and preamble; writes the chosen values explicitly so the file documents what will actually run
+- Every harness prompt is now preceded by a preamble that casts the harness as the project's human decision-maker on an unattended run and instructs it to verify claims against the repository instead of agreeing by default; override per-repo via a `## Preamble` section in `.ed3d/autonomous-mode.md`
+
+**Changed:**
+- `asking-questions-autonomously` no longer asks the harness for a bare option label — replies must give brief reasoning and end with a machine-readable `ANSWER: <label>` line, so fill-in options like "Needs adjustment: \<gap\>" carry their specifics through to the decision instead of being suppressed by the old "label only" instruction
+- `docs/autonomous-log.md` entries gained a **Reasoning:** field recording why the harness answered as it did, not just what it answered
+- `asking-questions-autonomously` now states explicitly that the presence of `.ed3d/autonomous-mode.md` alone is the switch: an empty file means the default harness command and preamble, not "no harness configured"
+
 ## [ed3d-house-style] [1.2.0]
 
 Add Python house-style skill, alongside the existing Rust and TypeScript guides.

@@ -38,8 +38,11 @@ Loaded when starting an implementation plan and again during the final all-phase
 
 Presence alone turns on autonomous mode across the whole design → plan → execute pipeline: every place a skill would normally call `AskUserQuestion` or stop to wait on you instead shells the question out to an external harness (a second AI, run headless) and treats its answer as yours. Mechanical choices that were never really judgment calls (worktree usage, batch vs. interactive plan writing) get hardcoded defaults instead of being asked or shelled at all. The two `/clear` handoffs (design → plan, plan → execute) are skipped in favor of chaining directly to the next skill in the same session, relying on auto-compaction instead of fresh context.
 
-**What to include:**
+Run `/auto-mode` to generate this file interactively. An empty file is also valid — presence alone is the switch, and both settings below have defaults.
+
+**What to include (both optional):**
 - A `HARNESS_CMD:` line with the command template to run, using `{{PROMPT}}` as the placeholder for the question text. Defaults to `codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"` if omitted.
+- A `## Preamble` section: text prepended to every question sent to the harness. Defaults to a framing that casts the harness as the project's decision-maker on an unattended run and tells it to verify claims against the repository rather than agree by default. The harness is asked to reply with brief reasoning plus a final `ANSWER:` line, so the log captures why, not just what.
 
 **What it changes beyond question-answering:**
 - After a design document is committed, `adversarial-design-review` dispatches it to the harness for a red-team pass (find gaps/contradictions, fix, re-review — capped at 3 cycles) before implementation planning starts.
@@ -104,10 +107,22 @@ Presence alone turns on autonomous mode across the whole design → plan → exe
 ### `.ed3d/autonomous-mode.md`
 
 ```markdown
-Enables autonomous mode: every AskUserQuestion in the plan-and-execute
-pipeline gets answered by the harness below instead of waiting on a human.
+# Autonomous Mode
+
+The presence of this file turns on autonomous mode for the ed3d
+plan-and-execute pipeline: questions that would wait on a human are answered
+by the harness command below instead. Delete this file to turn it off.
 
 HARNESS_CMD: codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"
+
+## Preamble
+
+You are standing in for this project's human decision-maker on an unattended
+automated run. Your answer will be treated as the human's final decision;
+nobody is reviewing it live. Do not agree by default: verify the question's
+claims against the repository (you have read access) and the context provided
+before accepting them. Flagging a real gap is always better than
+rubber-stamping one through.
 ```
 
 ## Notes

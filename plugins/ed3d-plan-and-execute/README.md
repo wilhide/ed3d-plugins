@@ -200,7 +200,7 @@ After planning, same pattern:
 /execute-implementation-plan @docs/implementation-plans/2025-01-14-your-feature .
 ```
 
-**Or, run it unattended:** create `.ed3d/autonomous-mode.md` first (see [Autonomous Mode](#autonomous-mode)) and `/start-design-plan` chains straight through to a pushed PR without stopping for you.
+**Or, run it unattended:** run `/auto-mode` first (see [Autonomous Mode](#autonomous-mode)) and `/start-design-plan` chains straight through to a pushed PR without stopping for you.
 
 ---
 
@@ -233,7 +233,7 @@ Run `/how-to-customize` for details and example files.
 
 ## Autonomous Mode
 
-Create `.ed3d/autonomous-mode.md` and the whole pipeline runs unattended, from `/start-design-plan` through a pushed PR, without stopping for you at any point along the way.
+Run `/auto-mode` (or create `.ed3d/autonomous-mode.md` yourself — presence alone is the switch, an empty file works) and the whole pipeline runs unattended, from `/start-design-plan` through a pushed PR, without stopping for you at any point along the way.
 
 **What changes:**
 
@@ -242,10 +242,12 @@ Create `.ed3d/autonomous-mode.md` and the whole pipeline runs unattended, from `
 - **Mechanical choices get hardcoded, not asked.** Implementation planning always uses a worktree and always writes all phases to disk before review — these were never real judgment calls, so nothing gets shelled out for them either.
 - **No `/clear` handoffs.** Design → plan → execute chains directly in the same session via the Skill tool, relying on auto-compaction instead of fresh context per phase.
 - **Finishing always opens a PR.** Merging to main and discarding work stay human-only decisions — autonomous mode never picks either, regardless of what a harness might say.
-- **Every decision is logged.** `docs/autonomous-log.md` records each shelled question, the harness's answer, and the decision taken — the audit trail for a run nobody watched live.
+- **Every decision is logged.** `docs/autonomous-log.md` records each shelled question, the harness's reasoning and answer, and the decision taken — the audit trail for a run nobody watched live.
 - **Failure halts, it doesn't guess.** If the harness can't be reached or its answer can't be resolved, the workflow writes `NEEDS_HUMAN_INPUT.md` at the repo root with full context and stops rather than picking a default on a real judgment call.
 
-Configure the harness with a `HARNESS_CMD:` line (defaults to `codex exec` if omitted). Run `/how-to-customize` for the file format and more detail.
+Every question is sent with a preamble that casts the harness as the project's decision-maker on an unattended run — instructed to verify claims against the repository rather than agree by default — and the harness must reply with brief reasoning plus a final `ANSWER:` line, so the log captures why, not just what.
+
+Configure with a `HARNESS_CMD:` line (defaults to `codex exec` if omitted) and an optional `## Preamble` section (defaults to the framing above). `/auto-mode` sets the file up interactively; run `/how-to-customize` for the file format and more detail.
 
 ---
 

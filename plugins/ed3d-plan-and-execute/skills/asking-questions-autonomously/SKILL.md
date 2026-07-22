@@ -1,6 +1,6 @@
 ---
 name: asking-questions-autonomously
-description: Use when a plan-and-execute skill would call AskUserQuestion or otherwise stop to wait on the user, and .ed3d/autonomous-mode.md exists at the repo root - answers the question via a configured external harness instead of blocking, logs the exchange, and halts safely if the harness can't resolve it
+description: Use when a plan-and-execute skill would call AskUserQuestion or otherwise stop to wait on the user, and .ed3d/autonomous-mode.md exists at the repo root (presence alone is the switch - an empty file means the default harness command and preamble) - answers the question via an external harness instead of blocking, logs the exchange, and halts safely if the harness can't resolve it
 user-invocable: false
 ---
 
@@ -22,13 +22,15 @@ Only when `.ed3d/autonomous-mode.md` exists at the repo root. Every other skill 
 
 ## Configuration
 
-Read `.ed3d/autonomous-mode.md`. It contains a `HARNESS_CMD:` line with a command template using `{{PROMPT}}` as a placeholder — a literal, fixed token, always replaced with the 8 characters `$PROMPT` (a shell variable reference), never with the prompt text itself. See Step 2 for why.
+Read `.ed3d/autonomous-mode.md`. Its presence is the entire switch — an empty file is valid and means "use both defaults below." Do not stop to ask whether autonomous mode is intended; the file existing is that answer. (`/auto-mode` generates this file, but a hand-created or empty one works the same.) Two things may be configured, both optional:
+
+**1. `HARNESS_CMD:` line** — a command template using `{{PROMPT}}` as a placeholder — a literal, fixed token, always replaced with the 8 characters `$PROMPT` (a shell variable reference), never with the prompt text itself. See Step 2 for why.
 
 ```
 HARNESS_CMD: codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"
 ```
 
-If the file exists but has no `HARNESS_CMD:` line, use this default:
+If there is no `HARNESS_CMD:` line, use this default:
 
 ```
 codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"
@@ -36,17 +38,31 @@ codex exec --sandbox read-only -c approval_policy=never "{{PROMPT}}"
 
 `--sandbox read-only` is deliberate: the harness is answering a question, not editing files. It may read the repository for context, but it should never need write access to do that.
 
+**2. `## Preamble` section** — text prepended to every harness prompt (Step 1). Everything under that heading, up to the next heading or end of file, is the preamble. If there is no `## Preamble` section, use this default:
+
+```
+You are standing in for this project's human decision-maker on an unattended
+automated run. Your answer will be treated as the human's final decision;
+nobody is reviewing it live. Do not agree by default: verify the question's
+claims against the repository (you have read access) and the context provided
+before accepting them. Flagging a real gap is always better than
+rubber-stamping one through.
+```
+
 ## The Process
 
 ### 1. Build the Prompt
 
 Include, in this order:
-1. The exact question text the calling skill would have shown the user
-2. Options, if any, each with its description (same as you'd pass to `AskUserQuestion`)
-3. Relevant context the calling skill has on hand (design doc excerpt, Definition of Done, file paths, prior decisions) — enough that the harness isn't guessing blind
-4. A closing instruction:
-   - With options: "Reply with ONLY the option label that best answers this, nothing else."
-   - Without options (open-ended): "Reply with a short, direct answer."
+1. The preamble (see Configuration). Every call, even for trivial-looking questions — models agree by default, and a bare "yes" is the cheapest reply there is; the preamble is what pushes the harness to scrutinize instead.
+2. The exact question text the calling skill would have shown the user
+3. Options, if any, each with its description (same as you'd pass to `AskUserQuestion`)
+4. Relevant context the calling skill has on hand (design doc excerpt, Definition of Done, file paths, prior decisions) — enough that the harness isn't guessing blind
+5. A closing instruction requiring reasoning plus a machine-readable final line:
+   - With options: "State your reasoning in 1-3 sentences, checking the claims above against the repository and the context given rather than accepting them. Then end your reply with a final line of exactly: `ANSWER: <option label>`. If the label contains a placeholder like `<gap>`, replace the placeholder with your specifics."
+   - Without options (open-ended): "State your reasoning in 1-3 sentences, then end your reply with a final line: `ANSWER: <short direct answer>`."
+
+Never ask for the bare option label alone. A label-only reply makes the audit trail unauditable — it can't show whether the harness scrutinized anything or rubber-stamped — and it makes fill-in options like "Needs adjustment: \<gap\>" unanswerable, because the label without the gap is the one part that doesn't matter.
 
 ### 2. Bind the Prompt to a Shell Variable — Never Splice It Directly
 
@@ -82,9 +98,13 @@ Treat a nonzero exit code, empty output, or a command-not-found error as harness
 
 ### 4. Resolve the Answer
 
-**With options:** Match the harness's reply against the option labels (case-insensitive, allow partial/fuzzy match — the harness may add a stray word). If exactly one option matches, that's the decision. If none match clearly, retry once with a sharper prompt: "Your answer must be exactly one of: [labels]. Reply with only the label." If the retry still doesn't match, treat as harness failure.
+The decision is the last line of the reply that starts with `ANSWER:` (case-insensitive). Everything before that line is the harness's reasoning — keep it for the log (Step 5).
 
-**Without options:** Use the reply text directly as the answer.
+**With options:** Match the text after `ANSWER:` against the option labels (case-insensitive, tolerate minor wording drift). For a label with a placeholder (e.g. "Needs adjustment: \<gap\>"), match on its fixed prefix ("Needs adjustment:") — everything after the prefix is the placeholder content and travels with the decision; it's the substance the calling skill acts on.
+
+**Without options:** Use the text after `ANSWER:` as the answer.
+
+**If there is no `ANSWER:` line, or it matches no option:** retry once with a sharper closing instruction: "End your reply with a final line of exactly `ANSWER: <label>` where <label> is one of: [labels]." If the retry still doesn't resolve, treat as harness failure (Step 6). Don't infer a decision from reasoning prose that lacks an `ANSWER:` line — that line is what keeps the log unambiguous.
 
 ### 5. Log the Exchange
 
@@ -94,8 +114,9 @@ Append to `docs/autonomous-log.md` at the repo root (create it with a `# Autonom
 ## [calling skill/phase] — [one-line question summary]
 **Asked:** [full question + options]
 **Harness:** `[HARNESS_CMD with prompt substituted, truncated if long]`
-**Answered:** [raw harness reply]
-**Decision:** [resolved option label or answer text used]
+**Reasoning:** [the harness's reasoning lines, verbatim — condense only if very long]
+**Answered:** [the harness's ANSWER line, verbatim]
+**Decision:** [resolved option label or answer text used, including any placeholder content]
 ```
 
 This is the audit trail for a run nobody watched live. Log every exchange, not just the ones that mattered.
@@ -125,9 +146,12 @@ If the harness command fails, times out, or its reply can't be resolved to an an
 | "This one destructive-adjacent choice is probably fine to shell out" | If an action can't be undone by editing a file, it doesn't go through this skill. Check `finishing-a-development-branch`'s hardcoded defaults instead. |
 | "Harness failed once, I'll just proceed without an answer" | One retry, then halt via `NEEDS_HUMAN_INPUT.md`. Never proceed on an unresolved question. |
 | "This prompt is short/simple, I'll splice it into the command directly" | Length and apparent simplicity don't matter — you don't control what the calling skill put in the prompt. Always bind via the Step 2 heredoc, every time. |
+| "The reply has no ANSWER line but its intent is obvious" | Retry with the sharper instruction from Step 4. Inferring decisions from prose breaks the one-line audit trail the log depends on. |
+| "The preamble bloats this simple question, I'll skip it" | The preamble is the only counterweight to the harness's agree-by-default bias — and simple-looking confirmations are exactly where rubber-stamps slip through. Include it on every call. |
+| "The file is empty, so no harness is really configured" | Presence alone is the switch. An empty file means the default command and default preamble, not "not configured" — proceed autonomously. |
 
 ## Integration
 
 **Called by:** Any plan-and-execute skill that would otherwise call `AskUserQuestion` or stop to ask the user, when `.ed3d/autonomous-mode.md` is present. See each skill's "Autonomous Mode" section for its specific call sites.
 
-**Pairs with:** `.ed3d/autonomous-mode.md` (configuration), `docs/autonomous-log.md` (output trail), `NEEDS_HUMAN_INPUT.md` (failure escalation).
+**Pairs with:** `.ed3d/autonomous-mode.md` (configuration — generated by `/auto-mode`, but hand-created or empty files work too), `docs/autonomous-log.md` (output trail), `NEEDS_HUMAN_INPUT.md` (failure escalation).
