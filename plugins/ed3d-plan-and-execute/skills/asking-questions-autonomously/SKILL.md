@@ -63,13 +63,22 @@ PROMPT_EOF
 
 ### 3. Run the Harness
 
-Take `HARNESS_CMD` and replace its `{{PROMPT}}` placeholder with the literal text `$PROMPT` (the variable reference from Step 2, not the prompt content), then run the result via Bash with a generous timeout (300s) — headless model calls can be slow:
+Take `HARNESS_CMD` and replace its `{{PROMPT}}` placeholder with the literal text `$PROMPT` (the variable reference from Step 2, not the prompt content). Run it with three defenses against hanging or losing output — headless model calls are slow, and a Bash call that produces nothing is otherwise impossible to diagnose:
+
+1. **Set the Bash tool's own `timeout` parameter to at least 300000 (milliseconds), every time.** Its default is 120000ms (2 minutes) — well under what a headless model call needs. A 300-second harness call gets killed by the *tool* before the command finishes if you don't override this. It does not carry over from a previous call; set it explicitly on each one.
+2. **Redirect stdin from `/dev/null`.** `codex exec` reads from stdin even when a prompt argument is given — without a closed stdin it prints "Reading additional input from stdin..." and hangs waiting for input that will never arrive. That hang, not the model call itself, is what actually eats the timeout budget. Verified: omitting `< /dev/null` produces that exact message and never returns; adding it returns cleanly.
+3. **Capture combined stdout+stderr to a scratch file**, not just inline output, so a hung or failed process still leaves something to inspect.
+
+**Do not wrap the command in a shell-level `timeout` utility.** It is GNU coreutils, not a POSIX/BSD standard tool — it doesn't exist by default on macOS (no `timeout`, no `gtimeout` without an extra Homebrew install), so a command built around it fails immediately with "command not found" on exactly the kind of machine this skill needs to run on. The Bash tool's own `timeout` parameter from step 1 is the only timeout enforcement needed; it doesn't depend on anything being installed in the target shell.
 
 ```bash
-codex exec --sandbox read-only -c approval_policy=never "$PROMPT"
+OUTPUT_FILE=$(mktemp)
+codex exec --sandbox read-only -c approval_policy=never "$PROMPT" < /dev/null > "$OUTPUT_FILE" 2>&1
+EXIT_CODE=$?
+cat "$OUTPUT_FILE"
 ```
 
-Capture stdout. Treat a nonzero exit code, empty stdout, or a command-not-found error as harness failure (see Step 6).
+Treat a nonzero exit code, empty output, or a command-not-found error as harness failure (see Step 6).
 
 ### 4. Resolve the Answer
 

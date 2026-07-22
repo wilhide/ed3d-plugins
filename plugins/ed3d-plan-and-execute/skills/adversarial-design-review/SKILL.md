@@ -62,7 +62,7 @@ PROMPT_EOF
 )
 ```
 
-Then run `HARNESS_CMD` with its `{{PROMPT}}` placeholder replaced by the literal text `$PROMPT` (300s timeout, treat command failure as harness failure) — same mechanics as `asking-questions-autonomously` Step 3.
+Then run `HARNESS_CMD` with its `{{PROMPT}}` placeholder replaced by the literal text `$PROMPT` — same mechanics as `asking-questions-autonomously` Step 3, including its Bash tool timeout, stdin redirect, and scratch-file output capture. This prompt is the largest payload the harness ever receives, so these defenses matter here more than anywhere else in the mechanism.
 
 **If the harness fails to respond:** follow the same halt behavior as `asking-questions-autonomously` Step 6 (write `NEEDS_HUMAN_INPUT.md`, stop). Don't skip review silently just because the harness was unreachable.
 
