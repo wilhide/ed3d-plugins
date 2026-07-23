@@ -53,6 +53,8 @@ If a skill for your task exists, you must use it or you will fail at your task.
 
 If a skill has a checklist, YOU MUST create task todos for EACH item using TaskCreate (or TodoWrite in older Claude Code versions).
 
+**If TaskCreate is missing from your loaded toolset, it is deferred, not absent.** Harnesses with deferred tools advertise them by name only until you load the schema. Load it with ToolSearch (`select:TaskCreate,TaskUpdate,TaskList`), then use it normally. A keyword search that surfaces no "todo" tool does not prove absence — only a failed `select:` load does. If TaskCreate and TodoWrite both truly fail to load, track the checklist as `- [ ]` items in a markdown file. Prose narration is never a substitute for task tracking.
+
 **Don't:**
 - Work through checklist mentally
 - Skip creating todos "to save time"

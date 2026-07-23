@@ -132,7 +132,7 @@ This scratchpad ensures isolation when multiple execution sessions run in parall
 
 ### 2. Create Phase-Level Task List
 
-Use TaskCreate to create **three task entries per phase** (or TodoWrite in older Claude Code versions). Include the title from the header:
+Use TaskCreate to create **three task entries per phase** (or TodoWrite in older Claude Code versions). If TaskCreate isn't in your loaded toolset, it's deferred — load it with ToolSearch (`select:TaskCreate,TaskUpdate,TaskList`) rather than concluding it's unavailable. Include the title from the header:
 
 ```
 - [ ] Phase 1a: Read /absolute/path/to/phase_01.md — Document Infrastructure Implementation Plan

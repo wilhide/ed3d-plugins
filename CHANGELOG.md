@@ -1,5 +1,12 @@
 # Changelog
 
+## [ed3d-plan-and-execute] [1.15.1]
+
+Stop sessions from wrongly concluding the task tracker is unavailable when TaskCreate is a deferred tool.
+
+**Fixed:**
+- `using-plan-and-execute` and `executing-an-implementation-plan` now instruct: if TaskCreate is missing from the loaded toolset, load it via ToolSearch (`select:TaskCreate,TaskUpdate,TaskList`) before concluding it's absent — a keyword search that surfaces no "todo" tool proves nothing, and prose narration is never a substitute for task tracking. Closes a real failure where a session "confirmed" the tracker was missing from a keyword search and fell back to narrating checklists in prose.
+
 ## [ed3d-plan-and-execute] [1.15.0]
 
 Catch repo-blind harnesses at setup time instead of mid-run, and default the harness to full-auto codex for isolated-devcontainer use.
